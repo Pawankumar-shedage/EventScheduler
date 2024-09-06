@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,10 +18,12 @@ import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.Availability;
 import com.event_scheduler.model.User;
 import com.event_scheduler.service.UserService;
+import com.mongodb.DuplicateKeyException;
+
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 @CrossOrigin(origins = "*") 
 public class UserController {
 
@@ -32,11 +35,15 @@ public class UserController {
         System.out.println("Received User: " + user); // Debug log
         
         // Save user to database
-        User saveUser = this.userService.addUser(user);
-        return ResponseEntity.ok(saveUser);
+        try {
+            User savedUser = this.userService.addUser(user);
+            return ResponseEntity.ok(savedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
-    @GetMapping("/users")
+    @GetMapping("/")
     public ResponseEntity<?> getUsers(){
         return ResponseEntity.ok(this.userService.getAllUsers());
     }
@@ -71,6 +78,8 @@ public class UserController {
 
         // Create new availability,and add to user{}
         Availability availability = new Availability();
+        System.out.println("NEW AVAILABILITY, with ID "+availability.getAvailabilityId());  //debug log
+
         availability.setStart(request.getStart());
         availability.setEnd(request.getEnd());
         availability.setDuration(request.getDuration());
@@ -99,7 +108,28 @@ public class UserController {
         
     }
 
-    // @DeleteMapping("")
+    @DeleteMapping("/{email}/availability/{availabilityId}")
+    public ResponseEntity<?> deleteAvailability(@PathVariable String email,@PathVariable String availabilityId){
+        // 1.access user by email
+        User user  = this.userService.getUserByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+
+        // 2.delete availabilty.
+        boolean deleted = user.getAvailabilities().removeIf(availability->availability.getAvailabilityId().equals(availabilityId));
+
+        if(!deleted){
+            throw new ResourceNotFoundException("Availability not found");
+        }
+
+        // 3.Update user
+        try{
+            this.userService.updateUser(user);
+        }
+        catch(Exception e){
+            throw new ResourceNotFoundException("Error updating user,with email id: "+email);
+        }
+
+        return ResponseEntity.ok("Availability deleted successfully, with id: "+availabilityId);
+    }
 
     
 

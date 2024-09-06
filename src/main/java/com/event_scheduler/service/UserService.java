@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.User;
 import com.event_scheduler.repository.UserRepo;
+import com.mongodb.DuplicateKeyException;
 
 @Service
 public class UserService{
@@ -25,10 +26,11 @@ public class UserService{
         // userid is automatically generated in mongodb
         // encode password
         logger.info("encrypting password");
+
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encodedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(encodedPassword);
-
+    
         return userRepo.save(user);
     }
 

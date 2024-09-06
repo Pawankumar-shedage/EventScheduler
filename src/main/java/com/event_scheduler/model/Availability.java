@@ -1,6 +1,7 @@
 package com.event_scheduler.model;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
 
@@ -18,7 +19,7 @@ import lombok.Setter;
 public class Availability {
 
     @Id
-    private String availabilityId;
+    private String availabilityId = UUID.randomUUID().toString();
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SS")
     private LocalDateTime start;
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SS")

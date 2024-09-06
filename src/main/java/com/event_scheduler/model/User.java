@@ -22,7 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document(collection = "user")
+@Document(collection = "users")
 public class User {
     private String name;
 
