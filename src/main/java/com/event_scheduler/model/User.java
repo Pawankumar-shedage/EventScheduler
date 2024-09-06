@@ -39,5 +39,7 @@ public class User {
 
     @Builder.Default()
     private List<Availability> availabilities = new ArrayList<>();
-    // private List<Session> sessions = new ArrayList<>();
+
+    @Builder.Default()
+    private List<Session> sessions = new ArrayList<>();
 }

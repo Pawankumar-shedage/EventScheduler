@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.User;
 import com.event_scheduler.repository.UserRepo;
-import com.mongodb.DuplicateKeyException;
 
 @Service
 public class UserService{
