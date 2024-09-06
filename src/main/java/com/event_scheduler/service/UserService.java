@@ -37,22 +37,39 @@ public class UserService{
        return userRepo.findByEmail(email);
     }
 
+    // login,
+    public boolean loginUser(String email, String password){
+        logger.info("Login user " + email);
+
+        User storedUser = userRepo.findByEmail(email).orElse(null);
+        if(storedUser != null)
+        {
+            //verify password
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            boolean isPasswordMatch = passwordEncoder.matches(password,storedUser.getPassword());
+            return isPasswordMatch;
+        }
+        return false;
+    }
+
     public Optional<User> updateUser(User user){
-        logger.info("Update user "+user.getEmail());
+        logger.info("Updated user "+user.getEmail());
+
         User userFromDB = userRepo.findByEmail(user.getEmail()).orElse(null);
         if(userFromDB == null){
-            throw new ResourceNotFoundException("User not found");
+            throw new ResourceNotFoundException("User not found "+user.getEmail());
         }
 
-        // update the userFromDB
+        // update the userFromDB (each field)
         userFromDB.setEmail(user.getEmail());
         userFromDB.setName(user.getName());
         userFromDB.setPassword(user.getPassword());
         userFromDB.setRole(user.getRole());
         userFromDB.setId(user.getId());
+        userFromDB.setAvailabilities(user.getAvailabilities());
 
-        // save updated user.
-        return Optional.ofNullable(userRepo.save(user));
+        // save updated user
+        return Optional.ofNullable(userRepo.save(userFromDB));
     }
 
     public void deleteUser(String email){

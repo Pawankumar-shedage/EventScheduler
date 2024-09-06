@@ -1,4 +1,4 @@
-package com.event_scheduler.model;
+package com.event_scheduler.dto;
 
 import java.time.LocalDateTime;
 
@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,13 +16,16 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Availability {
+@Builder
+public class AvailabilityRequest {
 
-    @Id
-    private String availabilityId;
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SS")
+   
+    private String email;
+
+     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SS")
     private LocalDateTime start;
+
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SS")
     private LocalDateTime end;
-    private int duration;   //in minutes
+    private int duration;   //in minutes.
 }
