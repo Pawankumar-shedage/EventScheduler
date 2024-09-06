@@ -29,7 +29,7 @@ public class User {
     private String email;
     private String password;  
     @Builder.Default()
-    private Enum<Role> role = Role.USER;  // Roles could be "USER", "ADMIN", etc.
+    private Role role = Role.USER;  // Roles could be "USER", "ADMIN", etc.
    
     // private List<Availability> availabilities = new ArrayList<>();
     // private List<Session> sessions = new ArrayList<>();

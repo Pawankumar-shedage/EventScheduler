@@ -15,7 +15,9 @@ public class SecurityConfig{
             .cors(cors->cors.disable())
             .authorizeHttpRequests((authz) -> authz
                  .requestMatchers("/user/**").permitAll()
-                .anyRequest().authenticated()
+                //  .requestMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().permitAll()
+                // .anyRequest().authenticated()
             );
         return http.build();
     }

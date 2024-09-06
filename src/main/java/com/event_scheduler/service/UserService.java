@@ -2,15 +2,17 @@ package com.event_scheduler.service;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.User;
 import com.event_scheduler.repository.UserRepo;
 
+@Service
 public class UserService{
 
     @Autowired
@@ -21,8 +23,12 @@ public class UserService{
     public User addUser(User user){
         logger.info("Adding user: " + user);
         // userid is automatically generated in mongodb
-        // encodepassword
-        // user.setPassword();
+        // encode password
+        logger.info("encrypting password");
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPassword);
+
         return userRepo.save(user);
     }
 

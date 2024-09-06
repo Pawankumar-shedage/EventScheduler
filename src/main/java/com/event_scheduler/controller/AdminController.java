@@ -1,5 +1,4 @@
 package com.event_scheduler.controller;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -9,31 +8,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.event_scheduler.model.User;
 import com.event_scheduler.service.UserService;
 
 @RestController
-@RequestMapping("/user")
-@CrossOrigin(origins = "*") 
-public class UserController {
+@RequestMapping("/admin")
+public class AdminController {
 
     @Autowired
     private UserService userService;
+    @PostMapping("/delete")
+    public void deleteUser(String email){
 
-    @PostMapping("/register")
-    public ResponseEntity<?> addUser(@RequestBody User user){
-        System.out.println("Received User: " + user); // Debug log
-        
-        // Save user to database
-        User saveUser = this.userService.addUser(user);
-        return ResponseEntity.ok(saveUser);
     }
 
     @GetMapping("/users")
     public ResponseEntity<?> getUsers(){
+
         return ResponseEntity.ok(this.userService.getAllUsers());
     }
 
     
+
 
 }
