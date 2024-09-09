@@ -120,7 +120,7 @@ public class UserController {
             throw new ResourceNotFoundException("Availability not found");
         }
 
-        // 3.Update user
+        // 3.Update user after deleted = true,update the availability in user document{}
         try{
             this.userService.updateUser(user);
         }

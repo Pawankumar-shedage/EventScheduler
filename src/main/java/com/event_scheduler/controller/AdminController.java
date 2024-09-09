@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import java.util.List;
+import java.util.ArrayList;
 import com.event_scheduler.dto.SessionRequest;
 import com.event_scheduler.helper.ResourceNotFoundException;
+import com.event_scheduler.helper.AvailabilityHelper;
+import com.event_scheduler.helper.CalculateDuration;
 import com.event_scheduler.model.Session;
 import com.event_scheduler.model.User;
-import com.event_scheduler.service.SessionService;
 import com.event_scheduler.service.UserService;
 
 @RestController
@@ -28,10 +30,10 @@ public class AdminController {
     private UserService userService;
 
     @Autowired
-    private SessionService sessionService;
+    private AvailabilityHelper availabilityHelper;
 
-    // get availabilities
-    @GetMapping("/availabilities")
+    // get users
+    @GetMapping("/usersList")
     public ResponseEntity<?> getUsers(){
         
         return ResponseEntity.ok(this.userService.getAllUsers());
@@ -41,47 +43,40 @@ public class AdminController {
     @PostMapping("/schedule")
     public ResponseEntity<?> scheduleSession(@RequestBody SessionRequest sessionRequest){
         // 1.Fetch user->2.Check user availability->3.Create session.
-
         User user = this.userService.getUserByEmail(sessionRequest.getUserEmail())
             .orElseThrow(()->new ResourceNotFoundException("User not found"));
-
-        boolean isAvailable = user.getAvailabilities()
-                            .stream().anyMatch(slot ->
-                            !sessionRequest.getStart().isBefore(slot.getStart())&&
-                            !sessionRequest.getEnd().isAfter(slot.getEnd())&&
-                            calculateDuration(sessionRequest.getStart(),sessionRequest.getEnd()) 
-                            <= slot.getDuration()
-                            );
-
+            
+        // CONFLICT CHECKING
+        boolean isAvailable =
+        AvailabilityHelper.isTimeSlotAvailable(user.getAvailabilities(), sessionRequest.getStart(), sessionRequest.getEnd());
+       
         if(!isAvailable){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Time slot not available");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Time slot not available,Couldn't schedule the session");
         }
 
         Session session = new Session();
         session.setStart(sessionRequest.getStart());
         session.setEnd(sessionRequest.getEnd());
-        session.setDuration(calculateDuration(sessionRequest.getStart(),sessionRequest.getEnd()));
+
+        int sessionDuration = CalculateDuration.duratioinBetween(sessionRequest.getStart(),sessionRequest.getEnd());
+        session.setDuration(sessionDuration);
         session.setSessionType(sessionRequest.getSessionType());
         session.setAttendees(sessionRequest.getAttendees());
+        
+        if(sessionDuration >= 1){
+            // session duration must be atleast for 1 minute
+            userService.addSessionToUser(user, session);
+        }else{
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Session duration must be atleast for 1 minute");
+        }
 
-        // Saving session
-        this.sessionService.addSession(session);
-
-        // Update user state.
-        user.getSessions().add(session);
-        System.out.println("Added session to user: " + user.getSessions().get(0).getId());//debug log
-        this.userService.updateUser(user);
+        // Update availability after the session is booked.
+        availabilityHelper.updateAvailabilityAfterSession(user,session);
 
         return ResponseEntity.ok("Session scheduled successfully");
     }
 
-    private int calculateDuration(LocalDateTime start, LocalDateTime end){
-        // time diff
-        long diff = java.time.Duration.between(start, end).toMinutes();
-        System.out.println("Duration of session: " + diff);//debug log
-        return (int) diff;
-    }
-
+   
     // TODO:Set user as admin
 
     // --------------------------delete user

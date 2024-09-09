@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.event_scheduler.helper.ResourceNotFoundException;
+import com.event_scheduler.model.Session;
 import com.event_scheduler.model.User;
 import com.event_scheduler.repository.UserRepo;
 
@@ -68,6 +69,7 @@ public class UserService{
         userFromDB.setRole(user.getRole());
         userFromDB.setId(user.getId());
         userFromDB.setAvailabilities(user.getAvailabilities());
+        userFromDB.setSessions(user.getSessions());
 
         // save updated user
         return Optional.ofNullable(userRepo.save(userFromDB));
@@ -88,4 +90,8 @@ public class UserService{
         return userRepo.findAll();
     }
 
+    public void addSessionToUser(User user,Session session){
+        user.getSessions().add(session);
+        updateUser(user);
+    }
 }

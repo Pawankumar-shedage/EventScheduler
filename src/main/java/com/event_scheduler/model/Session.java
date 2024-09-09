@@ -38,6 +38,7 @@ public class Session {
 
     @Builder.Default()
     private SessionType sessionType = SessionType.INDIVIDUAL; 
+    
     @Builder.Default()
     private List<Attendee> attendees = new ArrayList<>();
 }   
