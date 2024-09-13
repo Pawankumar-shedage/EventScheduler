@@ -1,6 +1,7 @@
 package com.event_scheduler.controller;
 import java.time.LocalDateTime;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -8,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +18,7 @@ import java.util.List;
 import java.util.ArrayList;
 import com.event_scheduler.dto.SessionRequest;
 import com.event_scheduler.helper.ResourceNotFoundException;
+import com.event_scheduler.helper.Role;
 import com.event_scheduler.helper.AvailabilityHelper;
 import com.event_scheduler.helper.CalculateDuration;
 import com.event_scheduler.model.Session;
@@ -77,7 +80,21 @@ public class AdminController {
     }
 
    
-    // TODO:Set user as admin
+    // TODO:Set user as admin/user
+    @PostMapping("/set-role/{email}")
+    public ResponseEntity<?> setAdmin(@PathVariable String email,@RequestBody User userRole){
+
+        boolean setUserAsAdmin = this.userService.setUserRole(email,userRole.getRole());
+
+        if(!setUserAsAdmin){
+            System.out.println("Couldn't set user as: "+userRole);//Debug log
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Couldn't set user as: "+userRole);
+        }
+
+        System.out.println("User role set as: "+userRole.getRole());//Debug log
+
+        return ResponseEntity.ok("User role set as: "+userRole.getRole());
+    }
 
     // --------------------------delete user
     @PostMapping("/delete-user")

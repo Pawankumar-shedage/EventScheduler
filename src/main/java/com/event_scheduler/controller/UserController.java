@@ -132,5 +132,6 @@ public class UserController {
     }
 
     
+    // TODO:Clear schedule(to remove all sessions and availabilities)
 
 }

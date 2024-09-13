@@ -9,6 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.event_scheduler.helper.ResourceNotFoundException;
+import com.event_scheduler.helper.Role;
 import com.event_scheduler.model.Session;
 import com.event_scheduler.model.User;
 import com.event_scheduler.repository.UserRepo;
@@ -93,5 +94,21 @@ public class UserService{
     public void addSessionToUser(User user,Session session){
         user.getSessions().add(session);
         updateUser(user);
+    }
+
+    public boolean setUserRole(String email,Role role){
+        User user = userRepo.findByEmail(email).orElse(null);
+
+        if(user == null){
+            System.out.println("User not found to set role: "+role);  //Debug log
+            return false;
+        }
+
+        System.out.println("User role set to "+role);//debug log
+        user.setRole(role);
+        // update user
+        updateUser(user);
+
+        return true;
     }
 }

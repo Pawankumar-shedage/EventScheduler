@@ -4,6 +4,7 @@ import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -49,12 +50,24 @@ public class SessionController {
         if(!sessionUpdated){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Session: " + sessionId + " not found");
         }
+
+        // TODO: to update the availability after updating the session.
         return ResponseEntity.ok("session updated successfully");
     }
 
 
     // Delete a session. (then update availability it.)
+    @DeleteMapping("/{email}/remove/{sessionId}")
+    public ResponseEntity<?> deleteSessionForUser(@PathVariable String email,@PathVariable String sessionId){
 
+        boolean sessionDeleted = sessionService.deleteSessionForUser(email, sessionId);
+        
+        if(!sessionDeleted){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Session: " + sessionId + " not found");
+        }
+
+        return ResponseEntity.ok("Session deleted successfully");
+    }
 
 
 }
