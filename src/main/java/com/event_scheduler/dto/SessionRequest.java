@@ -24,6 +24,7 @@ public class SessionRequest {
     private LocalDateTime end;
     private SessionType sessionType;    //INDIVIDUAL or GROUP
 
+    private String title;
     // Attendees
     List<Attendee> attendees;
 }

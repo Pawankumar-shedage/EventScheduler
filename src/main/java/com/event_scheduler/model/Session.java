@@ -36,6 +36,8 @@ public class Session {
 
     private int duration;
 
+    private String title;
+
     @Builder.Default()
     private SessionType sessionType = SessionType.INDIVIDUAL; 
     

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.event_scheduler.dto.AvailabilityRequest;
+import com.event_scheduler.dto.LoginRequest;
 import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.Availability;
 import com.event_scheduler.model.User;
@@ -49,21 +50,22 @@ public class UserController {
     }
 
     @PostMapping("/do-login")
-    public String loginUser(String email,String password){
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest){
 
-        // if user is valid: success-message,redirect to dashboard
-        boolean isUserValid = this.userService.loginUser(email, password);
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
+        try{
+            boolean isUserValid = this.userService.loginUser(email, password);
+            if(isUserValid){
+                System.out.println("Login successful"); // Debug log
+                return ResponseEntity.ok("Login successful");
+            }
 
-        if(isUserValid){
-            System.out.println("Login successful"); // Debug log
-            return "redirect:/dashboard";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
         }
-        else{
-            System.out.println("Login failed"); // Debug log
-            return "redirect:/";
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
-        // else
-        // invalid credentials
     }
 
 

@@ -23,7 +23,15 @@ public class UserService{
     private Logger  logger = LoggerFactory.getLogger(this.getClass());
 
     public User addUser(User user){
-        logger.info("Adding user: " + user);
+        logger.info("Adding user: " + user.getEmail());
+
+        // Check if the email is already in use
+        Optional<User> existingUser = userRepo.findByEmail(user.getEmail());
+        
+        if (existingUser.isPresent()) {
+            throw new IllegalArgumentException("User with email " + user.getEmail() +" already exists");
+            // return null;
+        }
         // userid is automatically generated in mongodb
         // encode password
         logger.info("encrypting password");

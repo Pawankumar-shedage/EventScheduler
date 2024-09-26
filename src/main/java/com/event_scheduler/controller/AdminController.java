@@ -60,7 +60,8 @@ public class AdminController {
         Session session = new Session();
         session.setStart(sessionRequest.getStart());
         session.setEnd(sessionRequest.getEnd());
-
+        session.setTitle(sessionRequest.getTitle
+        ());
         int sessionDuration = CalculateDuration.duratioinBetween(sessionRequest.getStart(),sessionRequest.getEnd());
         session.setDuration(sessionDuration);
         session.setSessionType(sessionRequest.getSessionType());
