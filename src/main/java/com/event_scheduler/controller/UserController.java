@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.event_scheduler.dto.AvailabilityRequest;
 import com.event_scheduler.dto.LoginRequest;
+import com.event_scheduler.dto.UserDTO;
+import com.event_scheduler.helper.CalculateDuration;
 import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.Availability;
 import com.event_scheduler.model.User;
@@ -58,7 +60,13 @@ public class UserController {
             boolean isUserValid = this.userService.loginUser(email, password);
             if(isUserValid){
                 System.out.println("Login successful"); // Debug log
-                return ResponseEntity.ok("Login successful");
+
+                // return user-> name,id,email
+                User user = this.userService.getUserByEmail(email).orElse(null);
+                UserDTO userDetails = new UserDTO(user.getName(),user.getEmail(),user.getId());
+
+                // sending limited user details in the response.
+                return ResponseEntity.ok(userDetails);
             }
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
@@ -84,7 +92,8 @@ public class UserController {
 
         availability.setStart(request.getStart());
         availability.setEnd(request.getEnd());
-        availability.setDuration(request.getDuration());
+        // calculate duration based on start() and end() time
+        availability.setDuration(CalculateDuration.duratioinBetween(request.getStart(),request.getEnd()));
 
         user.getAvailabilities().add(availability);
 
