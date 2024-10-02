@@ -21,128 +21,144 @@ import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.model.Availability;
 import com.event_scheduler.model.User;
 import com.event_scheduler.service.UserService;
-import com.mongodb.DuplicateKeyException;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "*") 
+@CrossOrigin(origins = "*")
 public class UserController {
 
     @Autowired
     private UserService userService;
 
     @PostMapping("/do-register")
-    public ResponseEntity<?> addUser(@RequestBody User user){
+    public ResponseEntity<?> addUser(@RequestBody User user) {
         System.out.println("Received User: " + user); // Debug log
-        
+
         // Save user to database
         try {
             User savedUser = this.userService.addUser(user);
-            return ResponseEntity.ok(savedUser);
+
+            // return user-> name,id,email
+            UserDTO userDetails = new UserDTO(savedUser.getName(), savedUser.getEmail(), savedUser.getId());
+            return ResponseEntity.ok(userDetails);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getUsers(){
+    public ResponseEntity<?> getUsers() {
         return ResponseEntity.ok(this.userService.getAllUsers());
     }
 
     @PostMapping("/do-login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
 
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
-        try{
+        try {
             boolean isUserValid = this.userService.loginUser(email, password);
-            if(isUserValid){
+            if (isUserValid) {
                 System.out.println("Login successful"); // Debug log
 
                 // return user-> name,id,email
                 User user = this.userService.getUserByEmail(email).orElse(null);
-                UserDTO userDetails = new UserDTO(user.getName(),user.getEmail(),user.getId());
+                UserDTO userDetails = new UserDTO(user.getName(), user.getEmail(), user.getId());
 
                 // sending limited user details in the response.
                 return ResponseEntity.ok(userDetails);
             }
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         }
     }
 
-
     // *******USER AVAILABILITY*******
     @PostMapping("/availability")
-    public ResponseEntity<?> addAvailability(@RequestBody AvailabilityRequest request){
-        // 1.get user
-        System.out.println("REQUEST "+request.getStart());  //debug log
+    public ResponseEntity<?> addAvailability(@RequestBody AvailabilityRequest[] requests) {
+        for (AvailabilityRequest request : requests) {
+            User user = this.userService.getUserByEmail(request.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        User user = this.userService.getUserByEmail(request.getEmail())
-        .orElseThrow(()->new ResourceNotFoundException("User not found"));
+            Availability availability = new Availability();
 
-        // Create new availability,and add to user{}
-        Availability availability = new Availability();
-        System.out.println("NEW AVAILABILITY, with ID "+availability.getAvailabilityId());  //debug log
+            availability.setStart(request.getStart());
+            availability.setEnd(request.getEnd());
+            availability.setDuration(CalculateDuration.duratioinBetween(request.getStart(), request.getEnd()));
 
-        availability.setStart(request.getStart());
-        availability.setEnd(request.getEnd());
-        // calculate duration based on start() and end() time
-        availability.setDuration(CalculateDuration.duratioinBetween(request.getStart(),request.getEnd()));
+            // Don't add availability if end < start
+            if(availability.getEnd().isBefore(availability.getStart())){
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Availability can't end before starting. "+availability.getStart()+ " to " +availability.getEnd()+" for user "+ user.getEmail());
+            }
 
-        user.getAvailabilities().add(availability);
+            List<Availability> existingAvailabilities = user.getAvailabilities();
 
-        // Update user with availability.
-        System.out.println("Updated user availaibility "+user);
-        this.userService.updateUser(user);
+            if(existingAvailabilities != null && !existingAvailabilities.isEmpty()){
+                
+                // Check for exisiting availabilitiy OR Coflict
+                for(Availability a:user.getAvailabilities()){
+                    if(a.getStart().equals(availability.getStart()) && a.getEnd().equals(availability.getEnd())){
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body("Availability already exists");
+                    }
+                    // new availability is between a.start and a.end
+                    else if(availability.getStart().isBefore(a.getEnd()) && availability.getEnd().isAfter(a.getStart()) ){
+                        return ResponseEntity.status(HttpStatus.CONFLICT).body("Can't set this availability "+availability.getStart()+ " to " +availability.getEnd()+" for user "+ user.getEmail());
+                    }
+                }
+            }
 
-        return ResponseEntity.ok("Availability set successfully"+user.getAvailabilities().get(0).getStart());
+            user.getAvailabilities().add(availability);
+            this.userService.updateUser(user); // Update user{}
+            
+            return ResponseEntity.ok("Availability set successfully");
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("Bad request");
     }
 
     @GetMapping("/{email}/availability")
-    public ResponseEntity<?> getAvailability(@PathVariable String email){
+    public ResponseEntity<?> getAvailability(@PathVariable String email) {
         // 1.get user
         User user = this.userService.getUserByEmail(email).orElse(null);
 
-        if(user != null){
+        if (user != null) {
             // return availability
             List<Availability> userAvailability = user.getAvailabilities();
             return ResponseEntity.ok(userAvailability);
         }
-        
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        
+
     }
 
     @DeleteMapping("/{email}/availability/{availabilityId}")
-    public ResponseEntity<?> deleteAvailability(@PathVariable String email,@PathVariable String availabilityId){
+    public ResponseEntity<?> deleteAvailability(@PathVariable String email, @PathVariable String availabilityId) {
         // 1.access user by email
-        User user  = this.userService.getUserByEmail(email).orElseThrow(()->new ResourceNotFoundException("User not found"));
+        User user = this.userService.getUserByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // 2.delete availabilty.
-        boolean deleted = user.getAvailabilities().removeIf(availability->availability.getAvailabilityId().equals(availabilityId));
+        boolean deleted = user.getAvailabilities()
+                .removeIf(availability -> availability.getAvailabilityId().equals(availabilityId));
 
-        if(!deleted){
+        if (!deleted) {
             throw new ResourceNotFoundException("Availability not found");
         }
 
         // 3.Update user after deleted = true,update the availability in user document{}
-        try{
+        try {
             this.userService.updateUser(user);
-        }
-        catch(Exception e){
-            throw new ResourceNotFoundException("Error updating user,with email id: "+email);
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Error updating user,with email id: " + email);
         }
 
-        return ResponseEntity.ok("Availability deleted successfully, with id: "+availabilityId);
+        return ResponseEntity.ok("Availability deleted successfully, with id: " + availabilityId);
     }
 
-    
     // TODO:Clear schedule(to remove all sessions and availabilities)
 
 }
