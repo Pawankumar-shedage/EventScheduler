@@ -38,7 +38,6 @@ public class AdminController {
     // get users
     @GetMapping("/usersList")
     public ResponseEntity<?> getUsers(){
-        
         return ResponseEntity.ok(this.userService.getAllUsers());
     }
 

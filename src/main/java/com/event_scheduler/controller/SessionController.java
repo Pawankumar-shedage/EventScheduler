@@ -30,6 +30,9 @@ public class SessionController {
     @Autowired
     private SessionService sessionService;
 
+    // Add session /Event
+    // AdminController.
+
     // GET sessions/{userEmail}
     @GetMapping("/{email}")
     public ResponseEntity<?> getSessionsForUser(@PathVariable String email){
