@@ -182,6 +182,9 @@ public class UserController {
     @PutMapping("/{email}/updtAvailability/{availabilityId}")
     public ResponseEntity<?> updateAvailability(@PathVariable String email, @PathVariable String availabilityId,
             @RequestBody AvailabilityRequest request) {
+        System.out.println("request start: " + request.getStart());
+        System.out.println("request end: " + request.getEnd());
+
         // 1st get that availability
         // check for existing availability
         User user = this.userService.getUserByEmail(email)
@@ -201,25 +204,35 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Availability not found");
         }
 
+        System.out.println("Avl start: " + availability.getStart());
+        System.out.println("Avl end: " + availability.getEnd());
+
         // Check for conflict: 1.Availability 2.Sessions
         for (Availability ab : availabilities) {
-            if (request.getStart().isAfter(ab.getStart()) && request.getEnd().isBefore(ab.getEnd())) {
+            if (request.getStart().equals(ab.getStart()) && request.getEnd().equals(ab.getEnd())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Can't set this availability due to availability conflict");
+                        .body("Can't set this availability due to duplicate availability conflict");
             }
         }
 
+
         for (Session s : user.getSessions()) {
-            if (// Condition 1: request start and end times should not be exactly equal to session start and end times
-            (!request.getStart().equals(s.getStart()) && !request.getEnd().equals(s.getEnd())) &&
-    
-            // Condition 2: request start time should be before session start, and request end time should be less than or equal to session end
-            (request.getStart().isBefore(s.getStart()) && request.getEnd().isBefore(s.getEnd())) ||
-    
-            // Condition 3: request start time is before session end
-            (request.getStart().isBefore(s.getEnd()))
+            // Condition 1: Exact match should be disallowed
+
+            if (request.getStart().isEqual(s.getStart()) && request.getEnd().isEqual(s.getEnd())) {
+                System.out.println("Session timing in updtAvl: " + s.getStart() + " " + s.getEnd());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Can't set this availability due to exact session conflict " + s.getId());
+            }
+
+            // Condition 2: Check for overlap
+            if ((request.getStart().isBefore(s.getEnd()) && request.getEnd().isAfter(s.getStart())) || // Overlapping
+                                                                                                       // session
+                    (request.getStart().equals(s.getStart()) || request.getEnd().equals(s.getEnd())) // Exact boundary
+                                                                                                     // match
             ) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Can't set this availability due to session conflict "+s.getId());
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Can't set this availability due to session conflict " + s.getId());
             }
         }
 
