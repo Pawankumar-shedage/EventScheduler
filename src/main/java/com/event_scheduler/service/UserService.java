@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.event_scheduler.helper.ResourceNotFoundException;
 import com.event_scheduler.helper.Role;
+import com.event_scheduler.model.Availability;
 import com.event_scheduler.model.Session;
 import com.event_scheduler.model.User;
 import com.event_scheduler.repository.UserRepo;
@@ -118,5 +119,18 @@ public class UserService{
         updateUser(user);
 
         return true;
+    }
+
+    // user availabilitiies
+    public void deleteAvailability(User user,String availabilityId){
+        for(Availability availability : user.getAvailabilities()){
+            if(availability.getAvailabilityId().equals(availabilityId)){
+                System.out.println("Deleting availability: "+availabilityId + " for user: "+user.getEmail());
+
+                user.getAvailabilities().remove(availability);
+                updateUser(user);
+                break;
+            }
+        }
     }
 }
