@@ -42,7 +42,7 @@ public class AdminController {
     }
 
     // POST admin/schedule
-    @PostMapping("/schedule")
+    @PostMapping("/schedule/session")
     public ResponseEntity<?> scheduleSession(@RequestBody SessionRequest sessionRequest){
         // 1.Fetch user->2.Check user availability->3.Create session.
         User user = this.userService.getUserByEmail(sessionRequest.getUserEmail())

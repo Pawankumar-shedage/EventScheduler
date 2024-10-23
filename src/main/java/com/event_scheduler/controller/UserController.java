@@ -122,12 +122,34 @@ public class UserController {
                         return ResponseEntity.status(HttpStatus.CONFLICT).body("Availability already exists");
                     }
                     // new availability is between a.start and a.end
-                    else if (availability.getStart().isBefore(a.getEnd())
-                            && availability.getEnd().isAfter(a.getStart())) {
+                    if ((availability.getStart().isBefore(a.getEnd())
+                            && availability.getEnd().isAfter(a.getStart()))
+                            || (availability.getStart().equals(a.getStart())
+                                    || availability.getEnd().equals(a.getEnd()))) {
                         return ResponseEntity.status(HttpStatus.CONFLICT)
-                                .body("Can't set this availability " + availability.getStart() + " to "
+                                .body("Can't add this availability " + availability.getStart() + " to "
                                         + availability.getEnd() + " for user " + user.getEmail());
                     }
+                }
+            }
+
+            // Session Conflict
+            for (Session s : user.getSessions()) {
+                // Condition 1: Exact match should be disallowed
+                if (request.getStart().isEqual(s.getStart()) && request.getEnd().isEqual(s.getEnd())) {
+                    System.out.println("Session timing in updtAvl: " + s.getStart() + " " + s.getEnd());
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body("Can't add this availability due to exact session conflict " + s.getId());
+                }
+                // Condition 2: Check for overlap (✔)
+                if ((request.getStart().isBefore(s.getEnd()) && request.getEnd().isAfter(s.getStart())) || // Overlapping
+                                                                                                           // session
+                        (request.getStart().equals(s.getStart()) || request.getEnd().equals(s.getEnd())) // Exact
+                                                                                                         // boundary
+                                                                                                         // match
+                ) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT)
+                            .body("Can't add this availability due to session conflict " + s.getId());
                 }
             }
 
@@ -209,12 +231,12 @@ public class UserController {
 
         // Check for conflict: 1.Availability 2.Sessions
         for (Availability ab : availabilities) {
+            // (✔)
             if (request.getStart().equals(ab.getStart()) && request.getEnd().equals(ab.getEnd())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Can't set this availability due to duplicate availability conflict");
             }
         }
-
 
         for (Session s : user.getSessions()) {
             // Condition 1: Exact match should be disallowed
@@ -225,7 +247,7 @@ public class UserController {
                         .body("Can't set this availability due to exact session conflict " + s.getId());
             }
 
-            // Condition 2: Check for overlap
+            // Condition 2: Check for overlap (✔)
             if ((request.getStart().isBefore(s.getEnd()) && request.getEnd().isAfter(s.getStart())) || // Overlapping
                                                                                                        // session
                     (request.getStart().equals(s.getStart()) || request.getEnd().equals(s.getEnd())) // Exact boundary
