@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ import com.event_scheduler.service.UserService;
 
 @RestController
 @RequestMapping("/admin")
+@CrossOrigin(origins = "*")
 public class AdminController {
 
     @Autowired
@@ -97,14 +99,17 @@ public class AdminController {
     }
 
     // --------------------------delete user
-    @PostMapping("/delete-user")
-    public void deleteUser(String email){
+    @DeleteMapping("/delete-user/{email}")
+    public ResponseEntity<?> deleteUser(@PathVariable String email){
         try{
             this.userService.deleteUser(email);
+            return ResponseEntity.ok("User deleted successfully");
         }
         catch(Exception e){
             System.err.println(e.getMessage());
         }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
     }
     
 
