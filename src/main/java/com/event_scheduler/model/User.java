@@ -28,12 +28,10 @@ public class User {
 
     @Id
     private String id;
-
     @Indexed(unique = true)
     private String email;
-
     private String password;  
-
+    private boolean enabled;
     @Builder.Default()
     private Role role = Role.USER;  // Roles could be "USER", "ADMIN", etc.
 
