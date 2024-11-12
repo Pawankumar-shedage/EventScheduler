@@ -1,6 +1,7 @@
 package com.event_scheduler.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -19,7 +20,7 @@ import com.event_scheduler.service.CustomUserDetailsService;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // get username and password UserDetails{}
+    // get username,password,role UserDetails{}
     // convert raw password -> hashed password BcryptPassword()
     // compare passwords
     // return true or false acess granted/denied
@@ -45,15 +46,17 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest()
                         .authenticated()
-                        )
-                .httpBasic(Customizer.withDefaults());
+                        );
+                        
+                // .httpBasic(Customizer.withDefaults());
 
-        System.out.println("SecurityFilterChain: "+" customUserDetailsService: "+customUserDetailsService.toString());
-        return http.build();
-        // on role based auth.
+        System.out.println("SecurityFilterChain: "+" customUserDetailsService: "+customUserDetailsService.loadUserByUsername("pawan@gmail.com"));
+        // UserDetails:->  [Username=pawan@gmail.com, Password=[PROTECTED],Enabled=false, AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true, 
+        // Granted Authorities=[ROLE_ADMIN]]
+        return http.build();        // on role based auth branch
     }
 
-    // hasing raw password, to compare with hashed password in DB.
+    // hashing raw password, to compare with hashed password in DB.
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder);
