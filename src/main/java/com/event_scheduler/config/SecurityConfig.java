@@ -1,14 +1,10 @@
 package com.event_scheduler.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,8 +14,8 @@ import com.event_scheduler.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
-
     // get username,password,role UserDetails{}
     // convert raw password -> hashed password BcryptPassword()
     // compare passwords
@@ -30,7 +26,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(@Lazy CustomUserDetailsService customUserDetailsService, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, PasswordEncoder passwordEncoder) {
         this.customUserDetailsService = customUserDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -40,33 +36,39 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(requests -> requests
-                        .requestMatchers("/users/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                        // .requestMatchers("/users/**").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                .authorizeHttpRequests((authz) -> authz
+                        .requestMatchers("/users/**").authenticated()
+                        .requestMatchers("/admin/**").authenticated()
+                        .requestMatchers("/hello").authenticated()
                         .anyRequest()
-                        .authenticated()
-                        );
-                        
-                // .httpBasic(Customizer.withDefaults());
-
-        System.out.println("SecurityFilterChain: "+" customUserDetailsService: "+customUserDetailsService.loadUserByUsername("pawan@gmail.com"));
-        // UserDetails:->  [Username=pawan@gmail.com, Password=[PROTECTED],Enabled=false, AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true, 
+                        .authenticated())
+                .httpBasic();
+        System.out.println("SecurityFilterChain: " + " customUserDetailsService: "
+                + customUserDetailsService.loadUserByUsername("pawan@gmail.com"));
+        // UserDetails:-> [Username=pawan@gmail.com, Password=[PROTECTED],Enabled=false,
+        // AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true,
         // Granted Authorities=[ROLE_ADMIN]]
-        return http.build();        // on role based auth branch
+
+        return http.build(); // on role based auth branch
     }
 
     // hashing raw password, to compare with hashed password in DB.
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder);
-    }
+    // @Autowired
+    // public void configure(AuthenticationManagerBuilder auth) throws Exception {
+    // auth.authenticationProvider(authenticationProvider());
+    // }
 
-    // username,password validation.
+    // @Bean
+    // public DaoAuthenticationProvider authenticationProvider(){
+    // DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    // authProvider.setUserDetailsService(customUserDetailsService);
+    // authProvider.setPasswordEncoder(passwordEncoder);
+
+    // return authProvider;
+    // }
+
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
-
 }

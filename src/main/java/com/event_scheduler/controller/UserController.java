@@ -3,6 +3,7 @@ package com.event_scheduler.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,11 +50,13 @@ public class UserController {
         }
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/")
     public ResponseEntity<?> getUsers() {
         return ResponseEntity.ok(this.userService.getAllUsers());
     }
 
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN')")
     @GetMapping("/{email}")
     public ResponseEntity<?> getUser(@PathVariable String email) {
 

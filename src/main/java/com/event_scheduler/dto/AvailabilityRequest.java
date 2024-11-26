@@ -2,8 +2,6 @@ package com.event_scheduler.dto;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.annotation.Id;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;

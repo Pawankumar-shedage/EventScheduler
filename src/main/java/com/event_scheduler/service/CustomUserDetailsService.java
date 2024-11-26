@@ -2,7 +2,6 @@ package com.event_scheduler.service;
 
 import java.util.Collections;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,16 +26,15 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         User user = userRepo.findByEmail(username).orElseThrow(()-> new ResourceNotFoundException("User not found with email: "+username));
 
-        String roleName = "ROLE_" + user.getRole().name();
-        // String roleName = user.getRole().name();
+        // String roleName = "ROLE_" + user.getRole().name();
+        String roleName = user.getRole().name();
 
         System.out.println("User role: "+roleName);
 
         return new org.springframework.security.core.userdetails.User(
             user.getEmail(),
             user.getPassword(),
-            user.isEnabled(),
-            true,true, true,
+            true,true,true, true,
             Collections.singletonList(new SimpleGrantedAuthority(roleName))
             );
     }

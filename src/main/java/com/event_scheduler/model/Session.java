@@ -2,12 +2,9 @@ package com.event_scheduler.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.event_scheduler.helper.SessionType;
 import com.fasterxml.jackson.annotation.JsonFormat;

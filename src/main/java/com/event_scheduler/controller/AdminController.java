@@ -1,12 +1,8 @@
 package com.event_scheduler.controller;
-import java.time.LocalDateTime;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authorization.method.AuthorizeReturnObject;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,11 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import java.util.List;
-import java.util.ArrayList;
 import com.event_scheduler.dto.SessionRequest;
 import com.event_scheduler.helper.ResourceNotFoundException;
-import com.event_scheduler.helper.Role;
 import com.event_scheduler.helper.AvailabilityHelper;
 import com.event_scheduler.helper.CalculateDuration;
 import com.event_scheduler.model.Session;
@@ -82,7 +75,7 @@ public class AdminController {
     }
 
    
-    // TODO:Set user as admin/user
+
     @PostMapping("/set-role/{email}")
     public ResponseEntity<?> setAdmin(@PathVariable String email,@RequestBody User userRole){
 
