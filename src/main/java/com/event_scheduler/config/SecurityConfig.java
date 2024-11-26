@@ -45,29 +45,9 @@ public class SecurityConfig {
                         .anyRequest()
                         .authenticated())
                 .httpBasic(withDefaults());
-        System.out.println("SecurityFilterChain: " + " customUserDetailsService: "
-                + customUserDetailsService.loadUserByUsername("pawan@gmail.com"));
-        // UserDetails:-> [Username=pawan@gmail.com, Password=[PROTECTED],Enabled=false,
-        // AccountNonExpired=true, CredentialsNonExpired=true, AccountNonLocked=true,
-        // Granted Authorities=[ROLE_ADMIN]]
-
+                
         return http.build(); // on role based auth branch
     }
-
-    // hashing raw password, to compare with hashed password in DB.
-    // @Autowired
-    // public void configure(AuthenticationManagerBuilder auth) throws Exception {
-    // auth.authenticationProvider(authenticationProvider());
-    // }
-
-    // @Bean
-    // public DaoAuthenticationProvider authenticationProvider(){
-    // DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-    // authProvider.setUserDetailsService(customUserDetailsService);
-    // authProvider.setPasswordEncoder(passwordEncoder);
-
-    // return authProvider;
-    // }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
