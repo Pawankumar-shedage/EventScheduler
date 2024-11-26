@@ -12,6 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import com.event_scheduler.service.CustomUserDetailsService;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -42,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/hello").authenticated()
                         .anyRequest()
                         .authenticated())
-                .httpBasic();
+                .httpBasic(withDefaults());
         System.out.println("SecurityFilterChain: " + " customUserDetailsService: "
                 + customUserDetailsService.loadUserByUsername("pawan@gmail.com"));
         // UserDetails:-> [Username=pawan@gmail.com, Password=[PROTECTED],Enabled=false,
