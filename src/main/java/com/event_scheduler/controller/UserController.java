@@ -28,27 +28,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @PostMapping("/do-register")
-    public ResponseEntity<?> addUser(@RequestBody User user) {
-        System.out.println("Received User: " + user); // Debug log
-
-        // Save user to database
-        try {
-            User savedUser = this.userService.addUser(user);
-
-            // return user-> name,id,email
-            UserDTO userDetails = new UserDTO(savedUser.getName(), savedUser.getEmail(), savedUser.getId());
-            return ResponseEntity.ok(userDetails);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
-    }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/")
@@ -67,29 +51,6 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/do-login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest loginRequest) {
-
-        String email = loginRequest.getEmail();
-        String password = loginRequest.getPassword();
-        try {
-            boolean isUserValid = this.userService.loginUser(email, password);
-            if (isUserValid) {
-                System.out.println("Login successful"); // Debug log
-
-                // return user-> name,id,email
-                User user = this.userService.getUserByEmail(email).orElse(null);
-                UserDTO userDetails = new UserDTO(user.getName(), user.getEmail(), user.getId());
-
-                // sending limited user details in the response.
-                return ResponseEntity.ok(userDetails);
-            }
-
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login failed");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
-    }
 
     // *******USER AVAILABILITY*******
     @PostMapping("/availability") // Add availability

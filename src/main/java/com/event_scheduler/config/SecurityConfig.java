@@ -40,15 +40,17 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
+                .cors()
+                .and()
                 .authorizeHttpRequests((authz) -> authz
                         .requestMatchers("/users/**").authenticated()
                         .requestMatchers("/admin/**").authenticated()
-                        .requestMatchers("/hello").authenticated()
+                        .requestMatchers("/public/**").permitAll()
                         .anyRequest()
                         .authenticated())
                 .httpBasic(withDefaults());
-                
-        return http.build(); // on role based auth branch
+
+        return http.build();
     }
 
     @Bean
